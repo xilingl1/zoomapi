@@ -25,19 +25,6 @@ user = json.loads(user_response.content)
 print(user)
 print ('---')
 
-
-# List User Channels
-channels = json.loads(client.chat_channels.list().content)["channels"]
-print("Channels:")
-print(channels)
-my_channel = input("Enter channel name: ")
-for c in channels:
-    if my_channel in c.values():
-        print("Found channel " + my_channel, c["id"])
-        cid = c["id"]
-
-stop = False
-
 # Create a new channel
 new_channel_name = input("Enter a new channel name: ")
 if new_channel_name == "skip":
@@ -45,12 +32,22 @@ if new_channel_name == "skip":
 else:
     print(client.chat_channels.create(name=new_channel_name, type=1))
 
+# List User Channels
+channels = json.loads(client.chat_channels.list().content)["channels"]
+print("Channels:")
+print(channels)
+my_channel = input("Get channel: ")
+for c in channels:
+    if my_channel in c.values():
+        print("Found channel " + my_channel, c["id"])
+        cid = c["id"]
+
 # Get the first channel
 channel_id = channels[0]['id']
 channel_name = json.loads(client.chat_channels.get(channel_id=channel_id).content)['name']
-print("Channel ID: ")
+print("First Channel ID: ")
 print(channel_id)
-print("Get the fist channel name: ")
+print("First Channel name: ")
 print(channel_name)
 
 # update a channel
@@ -59,16 +56,17 @@ new_channel_name = input("Enter the new channel name: ")
 for c in channels:
     if old_channel_name in c.values():
         cid = c["id"]
-        client.chat_channels.update(channel_id=cid, name=new_channel_name)
-        print("Found channel " + old_channel_name + " and change its name to " + new_channel_name)
+        print(client.chat_channels.update(channel_id=cid, name=new_channel_name).content)
+
+
+channels = json.loads(client.chat_channels.list().content)["channels"]
 
 # Delete a channel
 channel_name = input("Enter the channel name to be deleted: ")
 for c in channels:
     if channel_name in c.values():
         cid = c["id"]
-        client.chat_channels.delete(channel_id=cid)
-        print("Channel " + channel_name + " has been deleted.")
+        print(client.chat_channels.delete(channel_id=cid).content)
 
 # List channel members
 channel_name = input("Enter the channel name to list members: ")
@@ -102,38 +100,48 @@ for c in channels:
     if channel_name in c.values():
         cid = c["id"]
         print(client.chat_channels.leave_channel(channel_id=cid).content)
-        print("Channel " + channel_name + " exited.")
 
-# Join a channel
-join_channel = False
-join_or_not = input("Join the channel? y/n: ")
+# Join the left channel
+join_or_not = input("Join the channel again? y/n: ")
 if join_or_not == "y":
     print(client.chat_channels.join_channel(channel_id=cid).content)
-    print("Channel " + channel_name + " joined.")
 
 # Remove a member
+
+channel_name = input("Enter the channel to remove a member: ")
 member_id = input("Member to be deleted: ")
-channel_name = input("Enter the channel: ")
 for c in channels:
     if channel_name in c.values():
         cid = c["id"]
         print(client.chat_channels.remove_member(channel_id=cid, member_id=member_id).content)
-        print("Member " + member_id + " is removed from Channel " + channel_name + ".")
 
 
+# List User Channels
+channels = json.loads(client.chat_channels.list().content)["channels"]
+print("Channels:")
+print(channels)
+my_channel = input("Enter channel name to test chat_messages: ")
+for c in channels:
+    if my_channel in c.values():
+        print("Found channel " + my_channel, c["id"])
+        cid = c["id"]
+
+# send a message to the channel
+message = input("Enter message: ")
+print(client.chat_messages.post(to_channel=cid, message=message).content)
+
+# List the messages of the channel
+messages = json.loads(client.chat_messages.list(user_id='me', to_channel=cid).content)["messages"]
+print("Previous messages of the channel:")
+print(messages)
+
+# update a message in channel
+message = input("Update the last message to: ")
+print(client.chat_messages.put(message_id=messages[len(messages)-1]['id'], message=message, to_channel=cid).content)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# delete the last message to the channel
+print(messages[len(messages)-1]['id'])
+option = input("Delete last message? y/n")
+if option == "y":
+    print(client.chat_messages.delete(message_id=messages[len(messages)-1]['id'], to_channel=cid).content)

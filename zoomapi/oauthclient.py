@@ -59,5 +59,5 @@ class OAuthZoomClient(ZoomClient):
 
     @property
     def chat_channels(self):
-        """Get the chat messages component"""
+        """Get the chat channels component"""
         return self.components.get("chat_channels")
